@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Planner</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: linear-gradient(to br, #9067c6, #c77777, #f66d72);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #6a5acd;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #6a5acd;
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #6a5acd;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        select {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 0.5rem;
+        }
+
+        button {
+            background-color: #6a5acd;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #564d8c;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f5f5f5;
+            padding: 0.8rem;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-button {
+            color: #dc143c;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            color: #b00020;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>School Planner ni Yohannah</h1>
+            <p>Stay kokak, be kokak!</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6a5acd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M9 12l2 2 4-4m6 2.5a1 1 0 01-1 1H10a1 1 0 01-1-1V7a1 1 0 011-1h7a1 1 0 011 1v9a2 2 0 01-2 2H15z"></path></svg> To-Do List
+                </h2>
+                <div class="input-group">
+                    <input type="text" id="newTodo" placeholder="Add a new task...">
+                    <button id="addTodoButton">Add</button>
+                </div>
+                <ul id="todoList"></ul>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6a5acd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> School Calendar
+                </h2>
+                <div class="input-group">
+                    <input type="text" id="newClassName" placeholder="Class name">
+                </div>
+                <div class="input-group">
+                    <select id="newClassDay">
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                    <input type="time" id="newClassTime">
+                    <button id="addClassButton">Add Class</button>
+                </div>
+                <ul id="classSchedule"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const todoList = document.getElementById('todoList');
+        const newTodoInput = document.getElementById('newTodo');
+        const addTodoButton = document.getElementById('addTodoButton');
+        const classSchedule = document.getElementById('classSchedule');
+        const newClassNameInput = document.getElementById('newClassName');
+        const newClassDaySelect = document.getElementById('newClassDay');
+        const newClassTimeInput = document.getElementById('newClassTime');
+        const addClassButton = document.getElementById('addClassButton');
+
+        let todos = [];
+        let classes = [];
+
+        // Load data from local storage
+        if (localStorage.getItem('todos')) {
+            todos = JSON.parse(localStorage.getItem('todos'));
+        }
+        if (localStorage.getItem('classes')) {
+            classes = JSON.parse(localStorage.getItem('classes'));
+        }
+
+        // Render initial to-do list
+        renderTodoList();
+
+        // Render initial class schedule
+        renderClassSchedule();
+
+        // Add new to-do item
+        addTodoButton.addEventListener('click', () => {
+            const newTodo = newTodoInput.value.trim();
+            if (newTodo) {
+                todos.push(newTodo);
+                newTodoInput.value = '';
+                renderTodoList();
+                saveToLocalStorage();
+            }
+        });
+
+        // Delete to-do item
+        todoList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-button')) {
+                const li = event.target.parentElement;
+                const index = Array.from(todoList.children).indexOf(li);
+                todos.splice(index, 1);
+                renderTodoList();
+                saveToLocalStorage();
+            }
+        });
+
+        // Add new class
+        addClassButton.addEventListener('click', () => {
+            const newClassName = newClassNameInput.value.trim();
+            const newClassDay = newClassDaySelect.value;
+            const newClassTime = newClassTimeInput.value;
+            if (newClassName && newClassTime) {
+                classes.push({ name: newClassName, day: newClassDay, time: newClassTime });
+                newClassNameInput.value = '';
+                newClassTimeInput.value = '';
+                renderClassSchedule();
+                saveToLocalStorage();
+            }
+        });
+
+        // Delete class
+        classSchedule.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-button')) {
+                const li = event.target.parentElement;
+                const index = Array.from(classSchedule.children).indexOf(li);
+                classes.splice(index, 1);
+                renderClassSchedule();
+                saveToLocalStorage();
+            }
+        });
+
+        // Render to-do list
+        function renderTodoList() {
+            todoList.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${todo}</span>
+                    <span class="delete-button">Delete</span>
+                `;
+                todoList.appendChild(li);
+            });
+        }
+
+        // Render class schedule
+        function renderClassSchedule() {
+            classSchedule.innerHTML = '';
+            classes.forEach((cls, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${cls.name} - ${cls.day} at ${cls.time}</span>
+                    <span class="delete-button">Delete</span>
+                `;
+                classSchedule.appendChild(li);
+            });
+        }
+
+        // Save data to local storage
+        function saveToLocalStorage() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+            localStorage.setItem('classes', JSON.stringify(classes));
+        }
+    </script>
+</body>
+</html>
